@@ -29,13 +29,15 @@ maxChar = 100
 master=TextData(MASTER_TEXT_PATH, maxChar)
 # get alphabet
 alphabet = master.alphabet
+char_to_int= master.char_to_int
+int_to_char = master.int_to_char
 text = master.text
 
 # read in files for training
 x_train = np.load(os.path.join(DATA_DIR, 'x_train.npy'))
 y_train = np.load(os.path.join(DATA_DIR, 'y_train.npy'))
 x_val = np.load(os.path.join(DATA_DIR, 'x_val.npy'))
-y_val = np.load(os.path.join(MAIN_DIR, 'y_val.npy'))
+y_val = np.load(os.path.join(DATA_DIR, 'y_val.npy'))
 
 # build model functions--------------------------------
 def build_model(LSTM_layer_size_1,  LSTM_layer_size_2, LSTM_layer_size_3, 
@@ -96,7 +98,7 @@ def on_epoch_end(epoch, logs):
 
     start_index = np.random.randint(1, len(text) - maxChar - 1)
     # need to check how much to pad
-    if len(start_index) < maxChar:
+    if start_index < maxChar:
         sentence0 = text[0:start_index]
         sentence1 = text[start_index+1: start_index+start_index]
         sentence = sentence0+sentence1
@@ -174,7 +176,7 @@ sweep_config['metric']= 'val_loss'
 # now name hyperparameters with nested dictionary
 parameters_dict = {
     'epochs': {
-       'value':10
+       'value':5
     },
     # for build_dataset
      'batch_size': {
@@ -248,7 +250,7 @@ callbacks = [print_callback, checkpoint, reduce_lr, WandbCallback()]
 
 # initialize sweep!
 
-sweep_id = wandb.sweep(sweep_config, roject="Thinking-Parrot2.0", entity="oscarscholin")
+sweep_id = wandb.sweep(sweep_config, project="Thinking-Parrot2.0", entity="oscarscholin")
 
 # 'train' tells agent function is train
 # 'count': number of times to run this
