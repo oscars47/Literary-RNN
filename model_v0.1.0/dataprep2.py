@@ -130,7 +130,7 @@ class TextData:
                     toast_len+=1
                     #print(toast_len)
                     if (toast_len > 0) and (toast_len <= self.maxChar): # if get acceptable toast, can leave
-                        goodtoast=False
+                        goodtoast=True
                         break
 
                 # now need to check that we dont run over
