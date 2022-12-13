@@ -44,26 +44,26 @@ concat_texts(TEXT_DIR) # run the function
 
 # now we call dataprep2 to make a TextData object and prepare the text
 # set maxChar limit; we will have a sandwhich pf this number of characters on either side
-# MASTER_TEXT_PATH = os.path.join(TEXT_DIR, 'master.txt')
-# # initialize text object
-# maxChar = 100
-# master=TextData(MASTER_TEXT_PATH, maxChar)
-# x_train, y_train, x_val, y_val = master.prepare_data()
-
-# # now save them
-# np.save(os.path.join(MAIN_DIR, 'texts_prep', 'x_train.npy'), x_train)
-# np.save(os.path.join(MAIN_DIR, 'texts_prep', 'y_train.npy'), y_train)
-# np.save(os.path.join(MAIN_DIR, 'texts_prep', 'x_val.npy'), x_val)
-# np.save(os.path.join(MAIN_DIR, 'texts_prep', 'y_val.npy'), y_val)
-
-TOAST_TEXT_PATH = os.path.join(TEXT_DIR, 'toaster_man.txt')
+MASTER_TEXT_PATH = os.path.join(TEXT_DIR, 'master.txt')
 # initialize text object
 maxChar = 100
-master=TextData(TOAST_TEXT_PATH, maxChar)
+master=TextData(MASTER_TEXT_PATH, maxChar)
 x_train, y_train, x_val, y_val = master.prepare_data()
 
 # now save them
-np.save(os.path.join(MAIN_DIR, 'texts_prep', 'test', 'x_train.npy'), x_train)
-np.save(os.path.join(MAIN_DIR, 'texts_prep', 'test', 'y_train.npy'), y_train)
-np.save(os.path.join(MAIN_DIR, 'texts_prep', 'test', 'x_val.npy'), x_val)
-np.save(os.path.join(MAIN_DIR, 'texts_prep', 'test', 'y_val.npy'), y_val)
+np.save(os.path.join(MAIN_DIR, 'texts_prep', 'x_train.npy'), x_train)
+np.save(os.path.join(MAIN_DIR, 'texts_prep', 'y_train.npy'), y_train)
+np.save(os.path.join(MAIN_DIR, 'texts_prep', 'x_val.npy'), x_val)
+np.save(os.path.join(MAIN_DIR, 'texts_prep', 'y_val.npy'), y_val)
+
+# TOAST_TEXT_PATH = os.path.join(TEXT_DIR, 'toaster_man.txt')
+# # initialize text object
+# maxChar = 100
+# master=TextData(TOAST_TEXT_PATH, maxChar)
+# x_train, y_train, x_val, y_val = master.prepare_data()
+
+# # now save them
+# np.save(os.path.join(MAIN_DIR, 'texts_prep', 'test', 'x_train.npy'), x_train)
+# np.save(os.path.join(MAIN_DIR, 'texts_prep', 'test', 'y_train.npy'), y_train)
+# np.save(os.path.join(MAIN_DIR, 'texts_prep', 'test', 'x_val.npy'), x_val)
+# np.save(os.path.join(MAIN_DIR, 'texts_prep', 'test', 'y_val.npy'), y_val)

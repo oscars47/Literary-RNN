@@ -23,7 +23,7 @@ class TextData:
     # function to clean the data-----------------
     def clean_data(self, text):
         # define list of forbidden characters
-        forbidden_char = ['…', '\n', '\\', '^', '{', '|', '}', '~', '£', 
+        forbidden_char = ['…', '\\', '^', '{', '|', '}', '~', '£', 
                             '¥', '§', '©', '«', '¬', '®', '°', '»', '„', 
                             '•', '™', '■', '□', '►', '\ufeff', '€', '>', '<', '=']
 
@@ -83,7 +83,7 @@ class TextData:
         # plt.plot(x_ls, y_ls, color='magenta', label='gaussian')
         plt.xlabel('Length of toast samples', fontsize=16)
         plt.ylabel('Number of samples', fontsize=16)
-        plt.title('Toast lengths for toaster manual', fontsize=18)
+        plt.title('Toast lengths for all text', fontsize=18)
         plt.show()
 
     # helper function to return the toast len
