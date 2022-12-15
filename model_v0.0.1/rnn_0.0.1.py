@@ -27,8 +27,7 @@ from dataprep import *
 
 
 # enter path to text here cleaned-------------------
-#path = 'THE SONNETS.txt'
-path = 'sonnets_mini.txt'
+TEXT_DIR= '/home/oscar47/Desktop/thinking_parrot/texts/master.txt'
 
 # prepare data for training--------------------
 # set max_Char value; this is length of sentence which we train on
@@ -37,7 +36,7 @@ maxChar = 100
 index = 1
 
 # create TextData object for the Shakespeare text
-td = dataprep.TextData(path, index, maxChar)
+td = dataprep.TextData(TEXT_DIR, index, maxChar)
 alphabet, char_to_int, int_to_char = td.get_parsed()
 text = td.get_text()
 
@@ -66,29 +65,39 @@ def train(config=None):
         validation_data=(x_val, y_val),
         epochs=config.epochs,
         callbacks=callbacks #use callbacks to have w&b log stats; will automatically save best model                     
-      )  
+      )
+
+def train_custom(LSTM_layer_size_1=128,  LSTM_layer_size_2=128, LSTM_layer_size_3=128, 
+              LSTM_layer_size_4=128, LSTM_layer_size_5=128, 
+              dropout=0.1, learning_rate=0.01, epochs=1, batchsize=32):
+    #initialize the neural net; 
+    global model
+    model = build_model(LSTM_layer_size_1,  LSTM_layer_size_2, LSTM_layer_size_3, 
+            LSTM_layer_size_4, LSTM_layer_size_5, 
+            dropout, learning_rate)
+    
+    #now run training
+    history = model.fit(
+    x_train, y_train,
+    batch_size = batchsize,
+    validation_data=(x_val, y_val),
+    epochs=epochs,
+    callbacks=callbacks #use callbacks to have w&b log stats; will automatically save best model                     
+    )
 
 def build_model(LSTM_layer_size_1,  LSTM_layer_size_2, LSTM_layer_size_3, 
           LSTM_layer_size_4, LSTM_layer_size_5, 
-          dropout_1, dropout_2,  dropout_3, dropout_4, dropout_5, learning_rate):
+          dropout, learning_rate):
     # call initialize function
     
     model = Sequential()
     # RNN layers for language processing
     model.add(LSTM(LSTM_layer_size_1, input_shape = (maxChar, len(alphabet)), return_sequences=True))
-    model.add(Dropout(dropout_1))
-
     model.add(LSTM(LSTM_layer_size_2, return_sequences=True))
-    model.add(Dropout(dropout_2))
-
     model.add(LSTM(LSTM_layer_size_3, return_sequences=True))
-    model.add(Dropout(dropout_3))
-
     model.add(LSTM(LSTM_layer_size_4, return_sequences=True))
-    model.add(Dropout(dropout_4))
-
     model.add(LSTM(LSTM_layer_size_5))
-    model.add(Dropout(dropout_5))
+    model.add(Dropout(dropout))
 
     model.add(Dense(len(alphabet)))
     model.add(Activation('softmax'))
@@ -228,7 +237,7 @@ parameters_dict = {
 sweep_config['parameters'] = parameters_dict
 
 # login to wandb-------------------------
-wandb.init(project="Thinking-Parrot-ShakespeareTest", entity="oscarscholin")
+#wandb.init(project="Thinking-Parrot-ShakespeareTest", entity="oscarscholin")
 
 # finish with callbacks------------
 # use the two helper functions above to create the LambdaCallback 
@@ -248,12 +257,18 @@ reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.2,
                               patience=1, min_lr=0.001)
 
 # compile the callbacks
-callbacks = [print_callback, checkpoint, reduce_lr, WandbCallback()]
+#callbacks = [print_callback, checkpoint, reduce_lr, WandbCallback()]
+callbacks = [print_callback, checkpoint, reduce_lr]
 
 # initialize sweep!
 
-sweep_id = wandb.sweep(sweep_config, project='Thinking-Parrot-ShakespeareTest', entity="oscarscholin")
+# sweep_id = wandb.sweep(sweep_config, project='Thinking-Parrot-ShakespeareTest', entity="oscarscholin")
 
-# 'train' tells agent function is train
-# 'count': number of times to run this
-wandb.agent(sweep_id, train, count=100)
+# # 'train' tells agent function is train
+# # 'count': number of times to run this
+# wandb.agent(sweep_id, train, count=100)
+
+# custom training!-----
+train_custom(LSTM_layer_size_1=248,  LSTM_layer_size_2=194, LSTM_layer_size_3=210, 
+              LSTM_layer_size_4=122, LSTM_layer_size_5=256, 
+               dropout=0.1, learning_rate=0.01, epochs=25, batchsize=96)

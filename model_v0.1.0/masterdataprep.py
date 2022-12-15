@@ -46,7 +46,7 @@ concat_texts(TEXT_DIR) # run the function
 # set maxChar limit; we will have a sandwhich pf this number of characters on either side
 MASTER_TEXT_PATH = os.path.join(TEXT_DIR, 'master.txt')
 # initialize text object
-maxChar = 100
+maxChar = 50
 master=TextData(MASTER_TEXT_PATH, maxChar)
 x_train, y_train, x_val, y_val = master.prepare_data()
 
