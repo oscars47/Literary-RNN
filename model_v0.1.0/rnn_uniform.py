@@ -1,49 +1,75 @@
-# master file for Shakespeare hyperparam sweeps
+# file to train network
 # @oscars47
 
-#imports
-
-# defaults
 import os
-from numpy import random
-import sys
-
-# machine learning libraries
+import numpy as np
+import keras
 from keras.callbacks import LambdaCallback, ModelCheckpoint, ReduceLROnPlateau
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout
-from keras.layers import LSTM
+from keras.layers import LSTM, Dropout, Dense, Activation
 from keras.optimizers import RMSprop
-import keras, pprint # pprint allows us to visualize nested dictionaries
-
-# hyperparameter optmization and visualization
+import tensorflow as tf
 import wandb
-from wandb.keras import WandbCallback
-from modelpredict import *
+from wandb.keras import *
+import sys
 
-#import other files
-import dataprep
-from dataprep import *
+# check GPU num
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
+from dataprep2_uniform import TextData # import TextData class for processing
+from modelpredict2 import sample # get functions to interpret output
 
-# enter path to text here cleaned-------------------
-TEXT_DIR= '/home/oscar47/Desktop/thinking_parrot/texts/master.txt'
+# define path
+MAIN_DIR = '/home/oscar47/Desktop/thinking_parrot'
+DATA_DIR = os.path.join(MAIN_DIR, 'texts_prep') # main
+# DATA_DIR = os.path.join(MAIN_DIR, 'texts_prep', 'test') # for testing
+MODEL2_DIR  =os.path.join(MAIN_DIR, 'tp2a-2 models')
 
-# prepare data for training--------------------
-# set max_Char value; this is length of sentence which we train on
-maxChar = 100
-# index 1 for shakespeare cleaning
-index = 1
+# define master txt file
+MASTER_TEXT_PATH = os.path.join(MAIN_DIR, 'texts', 'master.txt')
+#MASTER_TEXT_PATH = os.path.join(MAIN_DIR, 'texts', 'toaster_man.txt')
 
-# create TextData object for the Shakespeare text
-td = dataprep.TextData(TEXT_DIR, index, maxChar)
-alphabet, char_to_int, int_to_char = td.get_parsed()
-text = td.get_text()
+# initialize text object
+maxChar = 50
+master=TextData(MASTER_TEXT_PATH, maxChar)
+# get alphabet
+alphabet = master.alphabet
+char_to_int= master.char_to_int
+int_to_char = master.int_to_char
+text = master.text
 
-# generate training set
-x_train, y_train, x_val, y_val = td.prepare_data()
+# read in files for training
+x_train = np.load(os.path.join(DATA_DIR, 'x_train.npy'))
+y_train = np.load(os.path.join(DATA_DIR, 'y_train.npy'))
+x_val = np.load(os.path.join(DATA_DIR, 'x_val.npy'))
+y_val = np.load(os.path.join(DATA_DIR, 'y_val.npy'))
 
 # build model functions--------------------------------
+def build_model(LSTM_layer_size_1,  LSTM_layer_size_2, LSTM_layer_size_3, 
+          LSTM_layer_size_4, LSTM_layer_size_5, 
+          dropout, learning_rate):
+    # call initialize function
+    
+    model = Sequential()
+    # RNN layers for language processing
+    model.add(LSTM(LSTM_layer_size_1, input_shape = (2*maxChar, len(alphabet)), return_sequences=True))
+    model.add(LSTM(LSTM_layer_size_2, return_sequences=True))
+    model.add(LSTM(LSTM_layer_size_3, return_sequences=True))
+    model.add(LSTM(LSTM_layer_size_4, return_sequences=True))
+    model.add(LSTM(LSTM_layer_size_5))
+
+    model.add(Dropout(dropout))
+
+    model.add(Dense(len(alphabet)))
+    model.add(Activation('softmax'))
+
+
+    # put structure together
+    optimizer = RMSprop(learning_rate = learning_rate)
+    model.compile(optimizer=optimizer, loss='categorical_crossentropy')
+
+    return model
+
 def train(config=None):
     with wandb.init(config=config):
     # If called by wandb.agent, as below,
@@ -56,7 +82,7 @@ def train(config=None):
       global model
       model = build_model(config.LSTM_layer_size_1,  config.LSTM_layer_size_2, config.LSTM_layer_size_3, 
               config.LSTM_layer_size_4, config.LSTM_layer_size_5, 
-              config.dropout_1, config.dropout_2,  config.dropout_3, config.dropout_4, config.dropout_5, config.learning_rate)
+              config.dropout, config.learning_rate)
       
       #now run training
       history = model.fit(
@@ -65,7 +91,7 @@ def train(config=None):
         validation_data=(x_val, y_val),
         epochs=config.epochs,
         callbacks=callbacks #use callbacks to have w&b log stats; will automatically save best model                     
-      )
+      ) 
 
 def train_custom(LSTM_layer_size_1=128,  LSTM_layer_size_2=128, LSTM_layer_size_3=128, 
               LSTM_layer_size_4=128, LSTM_layer_size_5=128, 
@@ -85,41 +111,21 @@ def train_custom(LSTM_layer_size_1=128,  LSTM_layer_size_2=128, LSTM_layer_size_
     callbacks=callbacks #use callbacks to have w&b log stats; will automatically save best model                     
     )
 
-def build_model(LSTM_layer_size_1,  LSTM_layer_size_2, LSTM_layer_size_3, 
-          LSTM_layer_size_4, LSTM_layer_size_5, 
-          dropout, learning_rate):
-    # call initialize function
-    
-    model = Sequential()
-    # RNN layers for language processing
-    model.add(LSTM(LSTM_layer_size_1, input_shape = (maxChar, len(alphabet)), return_sequences=True))
-    model.add(LSTM(LSTM_layer_size_2, return_sequences=True))
-    model.add(LSTM(LSTM_layer_size_3, return_sequences=True))
-    model.add(LSTM(LSTM_layer_size_4, return_sequences=True))
-    model.add(LSTM(LSTM_layer_size_5))
-    model.add(Dropout(dropout))
-
-    model.add(Dense(len(alphabet)))
-    model.add(Activation('softmax'))
-
-
-    # put structure together
-    optimizer = RMSprop(learning_rate = learning_rate)
-    model.compile(loss='categorical_crossentropy')
-
-    return model
-
 def train_custom_resume(model, batchsize, epochs):
-   #now run training
-   history = model.fit(
-   x_train, y_train,
-   batch_size = batchsize,
-   validation_data=(x_val, y_val),
-   epochs=epochs,
-   callbacks=callbacks #use callbacks to have w&b log stats; will automatically save best model                     
-   )
+    #now run training
+    history = model.fit(
+    x_train, y_train,
+    batch_size = batchsize,
+    validation_data=(x_val, y_val),
+    epochs=epochs,
+    callbacks=callbacks #use callbacks to have w&b log stats; will automatically save best model                     
+    )
 
 # helper functions from Keras
+
+def get_toast_len(mean, stdev):
+    toast_len = int(np.random.normal(mean, stdev))
+    return toast_len
 
 # do this each time we begin a new epoch    
 def on_epoch_end(epoch, logs):
@@ -127,34 +133,44 @@ def on_epoch_end(epoch, logs):
     print()
     print('----- Generating text after Epoch: %d' % epoch)
 
-    start_index = random.randint(0, len(text) - maxChar - 1)
-    for diversity in [0.1, 0.2, 0.5, 1.0, 1.2, 1.5, 2.0]:
+
+    for diversity in [0.1, 0.5,1.2]:
         print('----- diversity:', diversity)
 
+        start_index = np.random.randint(maxChar, len(text) - maxChar - 1)
+        sentence0 = text[start_index-maxChar:start_index]
+        sentence1 = text[start_index+1: start_index+maxChar]
+        sentence =  sentence0+ sentence1
+        
+        # need another condition here about if neat the end
+
         generated = ''
-        sentence = text[start_index: start_index + maxChar]
-        generated += sentence
+        #generated += sentence
         print('----- Generating with seed: "' + sentence + '"')
         #sys.stdout.write(generated)
 
         # generate 400 characters worth of test
         for i in range(400):
             # prepare chosen sentence as part of new dataset
-            x_pred = np.zeros((1, maxChar, len(alphabet)))
+            x_pred = np.zeros((1, 2*maxChar, len(alphabet)))
+            #x_pred = np.zeros((2*maxChar, len(alphabet)))
             for t, char in enumerate(sentence):
                 x_pred[0, t, char_to_int[char]] = 1.
 
             # use the current model to predict what outputs are
-            preds = model.predict(x_pred, verbose=0)[0]
+            preds = model.predict(x_pred, verbose=0)[0] # removed [0] here
             # call the function above to interpret the probabilities and add a degree of freedom
             next_index = sample(preds, diversity)
             #convert predicted number to character
             next_char = int_to_char[next_index]
 
-            # append to existing string so as to build it up
-            generated += next_char
-            # append new character to previous sentence and delete the old one in front; now we train on predictions
-            sentence = sentence[1:] + next_char
+            generated+=next_char
+
+            # check size of sentence; if still small can keep old stuff in sentence0
+            if len(sentence) >= 2*maxChar:
+                sentence0 = sentence0[1:]
+            sentence0 += next_char # append new middle character
+            sentence=sentence0+sentence1 # append to main sentence
 
             # print the new character as we create it
             sys.stdout.write(next_char)
@@ -177,7 +193,7 @@ sweep_config['metric']= 'val_loss'
 # now name hyperparameters with nested dictionary
 parameters_dict = {
     'epochs': {
-       'value': 5
+       'value':5
     },
     # for build_dataset
      'batch_size': {
@@ -210,27 +226,7 @@ parameters_dict = {
        'min': 64,
        'max': 256
     },
-    'dropout_1': {
-      'distribution': 'uniform',
-       'min': 0,
-       'max': 0.6
-    },
-     'dropout_2': {
-       'distribution': 'uniform',
-       'min': 0,
-       'max': 0.6
-    },
-     'dropout_3': {
-             'distribution': 'uniform',
-       'min': 0,
-       'max': 0.6
-    },
-     'dropout_4': {
-             'distribution': 'uniform',
-       'min': 0,
-       'max': 0.6
-    },
-     'dropout_5': {
+     'dropout': {
              'distribution': 'uniform',
        'min': 0,
        'max': 0.6
@@ -247,7 +243,7 @@ parameters_dict = {
 sweep_config['parameters'] = parameters_dict
 
 # login to wandb-------------------------
-#wandb.init(project="Thinking-Parrot-ShakespeareTest", entity="oscarscholin")
+#wandb.init(project="Thinking-Parrot2.0-1", entity="oscarscholin")
 
 # finish with callbacks------------
 # use the two helper functions above to create the LambdaCallback 
@@ -256,9 +252,9 @@ print_callback = LambdaCallback(on_epoch_end=on_epoch_end)
 # define two other callbacks
 # save model
 # if no directory "models" exists, create it
-if not(os.path.exists('models')):
-    os.mkdir('./models/')
-modelpath = "models/shakespeare_v0.0.1.hdf5"
+if not(os.path.exists(os.path.join(MAIN_DIR, 'models'))):
+    os.mkdir(os.path.join(MODEL2_DIR, 'models'))
+modelpath = os.path.join(MODEL2_DIR, "tp2_v0.0.1-2.hdf5")
 checkpoint = ModelCheckpoint(modelpath, monitor='loss',
                              verbose=1, save_best_only=True,
                              mode='min')
@@ -272,19 +268,17 @@ callbacks = [print_callback, checkpoint, reduce_lr]
 
 # initialize sweep!
 
-# sweep_id = wandb.sweep(sweep_config, project='Thinking-Parrot-ShakespeareTest', entity="oscarscholin")
+# sweep_id = wandb.sweep(sweep_config, project="Thinking-Parrot2.0-1", entity="oscarscholin")
 
 # # 'train' tells agent function is train
 # # 'count': number of times to run this
 # wandb.agent(sweep_id, train, count=100)
 
-# custom training!-----
 # train_custom(LSTM_layer_size_1=248,  LSTM_layer_size_2=194, LSTM_layer_size_3=210, 
 #               LSTM_layer_size_4=122, LSTM_layer_size_5=256, 
-#                dropout=0.1, learning_rate=0.01, epochs=25, batchsize=96)
+#               dropout=0.1, learning_rate=0.01, epochs=25, batchsize=96)
 
-# resume training!
-MAIN_DIR = '/home/oscar47/Desktop/thinking_parrot'
-MODEL_PATH = os.path.join(MAIN_DIR, 'Literary-RNN/model_v0.0.1/models/shakespeare_v0.0.1.hdf5')
+# continue training------
+MODEL_PATH = os.path.join(MAIN_DIR, 'tp2_v0.0.1.hdf5')
 model = keras.models.load_model(MODEL_PATH)
 train_custom_resume(model, 96, 25)
