@@ -57,22 +57,58 @@ class TextData:
         # generate list of sentences and the target character following the sentence
         sentences = []
         target_chars = []
-
+        stdev = (1/2)*(self.maxChar - 1)
+        mean = (self.maxChar - 1)
         # for loop to populate lists of semiredudant sentences
-        for i in range(len(text) - self.maxChar):
-            sentences.append(text[i: i + self.maxChar])
-            target_chars.append(text[i + self.maxChar])
+        for i in range(1, len(text)-2):
+            length = int(np.random.normal(mean, stdev))
+            if length > self.maxChar: # needs to not be too long
+                canpass=False
+                while canpass==False:
+                    length-=1
+                    if length== self.maxChar:
+                        canpass=True
+                        break
+            
+            if (i + length) <= (len(text)-2): # add padding
+                diff = self.maxChar-length
+                padded_sentence = ''
+                if diff > 0:
+                    for i in range(diff):
+                        padded_sentence+='£'
+                padded_sentence+=text[i: i + length]
+                sentences.append(padded_sentence)
+                target_chars.append(text[i + length])
+            else: # if too long, decrement until good
+                goodlength=False
+                while goodlength==False:
+                    length-=1
+                    if (i + length) <= (len(text)-2): # add padding
+                        diff = self.maxChar-length
+                        padded_sentence = ''
+                        for i in range(diff):
+                            padded_sentence+='£'
+                        padded_sentence+=text[i: i + length]
+                        sentences.append(padded_sentence)
+                        target_chars.append(text[i + length])
+                        goodlength = True
+                        break
+
         #print('number of semiredudant sentences:', len(text))
         #print('example sentence:', sentences[0])
 
         # convert to binary arrays
-        data = np.zeros((len(sentences), self.maxChar, len(self.alphabet)), dtype = np.bool_)
-        labels = np.zeros((len(sentences), len(self.alphabet)), dtype = np.bool_)
+        data = np.zeros((len(sentences), self.maxChar, len(self.alphabet)), dtype = np.uint8)
+        labels = np.zeros((len(sentences), len(self.alphabet)), dtype = np.uint8)
 
         # set a 1 in the index corresponding to the integer mapping of the character
         for i, sentence in enumerate(sentences):
+            #print(sentence)
             for j, char in enumerate(sentence):
-                data[i, j, self.char_to_int[char]] = 1
+                if char != '£':
+                    #print(self.char_to_int[char])
+                    data[i, j, self.char_to_int[char]] = 1
+                #print(data)
             labels[i, self.char_to_int[target_chars[i]]] = 1
 
         return data, labels
@@ -145,12 +181,12 @@ class TextData:
 class TextDataText:
     # define constructor: pass path to text, index in list of possible clean data functions: [nasrudin, shakespeare]
     def __init__(self, text, index, maxChar):
-    
         if index == 1:
             self.clean_text = clean_data_shakespeare(text)
         else:
             self.clean_text = clean_data_nasrudin(text)
-    
+        # set environ variable for the text
+        os.environ['TEXT'] = self.clean_text
         # get alphabet and dictionaries
         self.alphabet, self.char_to_int, self.int_to_char = self.parse_text(self.clean_text)
         #set maxChar
@@ -190,22 +226,58 @@ class TextDataText:
         # generate list of sentences and the target character following the sentence
         sentences = []
         target_chars = []
-
+        stdev = (1/2)*(self.maxChar - 1)
+        mean = (self.maxChar - 1)
         # for loop to populate lists of semiredudant sentences
-        for i in range(len(text) - self.maxChar):
-            sentences.append(text[i: i + self.maxChar])
-            target_chars.append(text[i + self.maxChar])
+        for i in range(1, len(text)-2):
+            length = int(np.random.normal(mean, stdev))
+            if length > self.maxChar: # needs to not be too long
+                canpass=False
+                while canpass==False:
+                    length-=1
+                    if length== self.maxChar:
+                        canpass=True
+                        break
+            
+            if (i + length) <= (len(text)-2): # add padding
+                diff = self.maxChar-length
+                padded_sentence = ''
+                if diff > 0:
+                    for i in range(diff):
+                        padded_sentence+='£'
+                padded_sentence+=text[i: i + length]
+                sentences.append(padded_sentence)
+                target_chars.append(text[i + length])
+            else: # if too long, decrement until good
+                goodlength=False
+                while goodlength==False:
+                    length-=1
+                    if (i + length) <= (len(text)-2): # add padding
+                        diff = self.maxChar-length
+                        padded_sentence = ''
+                        for i in range(diff):
+                            padded_sentence+='£'
+                        padded_sentence+=text[i: i + length]
+                        sentences.append(padded_sentence)
+                        target_chars.append(text[i + length])
+                        goodlength = True
+                        break
+
         #print('number of semiredudant sentences:', len(text))
         #print('example sentence:', sentences[0])
 
         # convert to binary arrays
-        data = np.zeros((len(sentences), self.maxChar, len(self.alphabet)), dtype = np.bool_)
-        labels = np.zeros((len(sentences), len(self.alphabet)), dtype = np.bool_)
+        data = np.zeros((len(sentences), self.maxChar, len(self.alphabet)), dtype = np.uint8)
+        labels = np.zeros((len(sentences), len(self.alphabet)), dtype = np.uint8)
 
         # set a 1 in the index corresponding to the integer mapping of the character
         for i, sentence in enumerate(sentences):
+            #print(sentence)
             for j, char in enumerate(sentence):
-                data[i, j, self.char_to_int[char]] = 1
+                if char != '£':
+                    #print(self.char_to_int[char])
+                    data[i, j, self.char_to_int[char]] = 1
+                #print(data)
             labels[i, self.char_to_int[target_chars[i]]] = 1
 
         return data, labels
