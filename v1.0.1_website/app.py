@@ -1,3 +1,4 @@
+# file to run wesbite for 1.1.0 version
 # using gradio for GUI
 import gradio as gr
 import numpy as np
@@ -39,14 +40,23 @@ def generate_text_text(input, text_len):
     input = td_sample.clean_text
     
     # make sure at least 40 characters for training
-    if len(input) < maxChar:
-        raise ValueError('Input must have >= %i characters. You have %i.' %(maxChar, len(input)))
+    if len(input) < 3:
+        raise ValueError('Input must have >= 3 characters. You have %i.' %(maxChar, len(input)))
     print('input:')
     print(input)
     print('-----------------')
     print('output:')
-    # grab last maxChar characters
-    sentence = input[-maxChar:]
+     # need to prepare input
+    if len(input) >= maxChar:
+        # grab last maxChar characters
+        sentence = input[-maxChar:]
+    else:
+        sentence = '' # initialize sentence
+        # compute diff
+        diff = maxChar - len(input)
+        for i in range(diff):
+            sentence+='£'
+        sentence+=input
     #sentence = input
     #print(sentence)
 
@@ -67,7 +77,8 @@ def generate_text_text(input, text_len):
         # prepare chosen sentence as part of new dataset
         x_pred = np.zeros((1, len(sentence), len(alphabet)))
         for t, char in enumerate(sentence):
-            x_pred[0, t, char_to_int[char]] = 1.0
+            if char != '£':
+                x_pred[0, t, char_to_int[char]] = 1.0
 
         # use the current model to predict what outputs are
         preds = model.predict(x_pred, verbose=0)[0]
@@ -85,7 +96,6 @@ def generate_text_text(input, text_len):
         sys.stdout.write(next_char)
         sys.stdout.flush()
     print()
-
     return generated
 
 # call hugging space interactive interface; use Blocks
@@ -96,7 +106,7 @@ with gr.Blocks() as think:
     
     # have accordian blurb
     with gr.Accordion("Click for more details!"):
-        gr.Markdown("Simply type at least 100 characters into the box labeled 'Your Input Text' below and then select the number of output characters you want (note: try lower values for a faster response). Then click 'Think'! My response will appear in the box labeled 'My Response'.")
+        gr.Markdown("Simply type at least 3 characters into the box labeled 'Your Input Text' below and then select the number of output characters you want (note: try lower values for a faster response). Then click 'Think'! My response will appear in the box labeled 'My Response'.")
     
     # setup user interface
     input = [gr.Textbox(label = 'Your Input Text'), gr.Slider(minimum=10, maximum =400, label='Number of output characters', step=10)]
@@ -107,3 +117,7 @@ with gr.Blocks() as think:
 # enable queing if heavy traffic
 think.queue(concurrency_count=3)
 think.launch()
+
+#for testing
+# input = input('enter text')
+# generate_text_text(input, 400)

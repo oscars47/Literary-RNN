@@ -46,8 +46,17 @@ def generate_text_text(input, text_len):
     print(input)
     print('-----------------')
     print('output:')
-    # grab last maxChar characters
-    sentence = input[-maxChar:]
+     # need to prepare input
+    if len(input) >= maxChar:
+        # grab last maxChar characters
+        sentence = input[-maxChar:]
+    else:
+        sentence = '' # initialize sentence
+        # compute diff
+        diff = maxChar - len(input)
+        for i in range(diff):
+            sentence+='£'
+        sentence+=input
     #sentence = input
     #print(sentence)
 
@@ -65,27 +74,28 @@ def generate_text_text(input, text_len):
 
     # generate text_len characters worth of test
     for i in range(text_len):
-          # prepare chosen sentence as part of new dataset
-            x_pred = np.zeros((1, maxChar, len(alphabet)))
-            for t, char in enumerate(sentence):
-                x_pred[0, t, char_to_int[char]] = 1.
+        # prepare chosen sentence as part of new dataset
+        x_pred = np.zeros((1, len(sentence), len(alphabet)))
+        for t, char in enumerate(sentence):
+            if char != '£':
+                x_pred[0, t, char_to_int[char]] = 1.0
 
-            # use the current model to predict what outputs are
-            preds = model.predict(x_pred, verbose=0)[0]
-            # call the function above to interpret the probabilities and add a degree of freedom
-            next_index = sample(preds, diversity)
-            #convert predicted number to character
-            next_char = int_to_char[next_index]
+        # use the current model to predict what outputs are
+        preds = model.predict(x_pred, verbose=0)[0]
+        # call the function above to interpret the probabilities and add a degree of freedom
+        next_index = sample(preds, diversity)
+        #convert predicted number to character
+        next_char = int_to_char[next_index]
 
-            # append to existing string so as to build it up
-            generated += next_char
-            # append new character to previous sentence and delete the old one in front; now we train on predictions
-            sentence = sentence[1:] + next_char
+        # append to existing string so as to build it up
+        generated += next_char
+        # append new character to previous sentence and delete the old one in front; now we train on predictions
+        sentence = sentence[1:] + next_char
 
-            # print the new character as we create it
-            sys.stdout.write(next_char)
-            sys.stdout.flush()
-
+        # print the new character as we create it
+        sys.stdout.write(next_char)
+        sys.stdout.flush()
+    print()
     return generated
 
 # call hugging space interactive interface; use Blocks
@@ -107,3 +117,7 @@ with gr.Blocks() as think:
 # enable queing if heavy traffic
 think.queue(concurrency_count=3)
 think.launch()
+
+#for testing
+# input = input('enter text')
+# generate_text_text(input, 400)

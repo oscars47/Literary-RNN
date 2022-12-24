@@ -30,15 +30,24 @@ def generate_text(ex_path, master_path, model, text_len):
     td_sample = TextData(ex_path, index, maxChar)
     input = td_sample.clean_text
     
-    # make sure at least 40 characters for training
-    if len(input) < maxChar:
-        raise ValueError('Input must have >= %i characters. You have %i.' %(maxChar, len(input)))
+    # make sure at least 3 characters for training
+    if len(input) < 3:
+        raise ValueError('Input must have >= 3 characters. You have %i.' %(maxChar, len(input)))
     print('input:')
     print(input)
     print('-----------------')
     print('output:')
-    # grab last maxChar characters
-    sentence = input[-maxChar:]
+    # need to prepare input
+    if len(input) >= maxChar:
+        # grab last maxChar characters
+        sentence = input[-maxChar:]
+    else:
+        sentence = '' # initialize sentence
+        # compute diff
+        diff = maxChar - len(input)
+        for i in range(diff):
+            sentence+='£'
+        sentence+=input
     #sentence = input
     #print(sentence)
 
@@ -59,7 +68,8 @@ def generate_text(ex_path, master_path, model, text_len):
         # prepare chosen sentence as part of new dataset
         x_pred = np.zeros((1, len(sentence), len(alphabet)))
         for t, char in enumerate(sentence):
-            x_pred[0, t, char_to_int[char]] = 1.0
+            if char != '£':
+                x_pred[0, t, char_to_int[char]] = 1.0
 
         # use the current model to predict what outputs are
         preds = model.predict(x_pred, verbose=0)[0]
@@ -95,13 +105,22 @@ def generate_text_text(text, master_path, model, text_len):
     
     # make sure at least 3 characters for training
     if len(input) < 3:
-        raise ValueError('Input must have >= %i characters. You have %i.' %(maxChar, len(input)))
+        raise ValueError('Input must have >= 3 characters. You have %i.' %(maxChar, len(input)))
     print('input:')
     print(input)
     print('-----------------')
     print('output:')
-    # grab last maxChar characters
-    sentence = input[-maxChar:]
+     # need to prepare input
+    if len(input) >= maxChar:
+        # grab last maxChar characters
+        sentence = input[-maxChar:]
+    else:
+        sentence = '' # initialize sentence
+        # compute diff
+        diff = maxChar - len(input)
+        for i in range(diff):
+            sentence+='£'
+        sentence+=input
     #sentence = input
     #print(sentence)
 
@@ -120,9 +139,10 @@ def generate_text_text(text, master_path, model, text_len):
     # generate text_len characters worth of test
     for i in range(text_len):
         # prepare chosen sentence as part of new dataset
-        x_pred = np.zeros((1, maxChar, len(alphabet)))
+        x_pred = np.zeros((1, len(sentence), len(alphabet)))
         for t, char in enumerate(sentence):
-            x_pred[0, t, char_to_int[char]] = 1.
+            if char != '£':
+                x_pred[0, t, char_to_int[char]] = 1.0
 
         # use the current model to predict what outputs are
         preds = model.predict(x_pred, verbose=0)[0]
@@ -140,11 +160,10 @@ def generate_text_text(text, master_path, model, text_len):
         sys.stdout.write(next_char)
         sys.stdout.flush()
     print()
-
     return generated
 
-# EX_PATH = '/home/oscar47/Desktop/thinking_parrot/input.txt'# path to input 
-# MASTER_PATH = '/home/oscar47/Desktop/thinking_parrot/texts/master.txt'# path for the training text file
-# model = keras.models.load_model('/home/oscar47/Desktop/thinking_parrot/Literary-RNN/model_v0.0.1/models/shakespeare_v0.0.1.hdf5')
-# output_char_num = 400
-# generate_text(EX_PATH, MASTER_PATH, model, output_char_num)
+EX_PATH = '/home/oscar47/Desktop/thinking_parrot/input.txt'# path to input 
+MASTER_PATH = '/home/oscar47/Desktop/thinking_parrot/texts/master.txt'# path for the training text file
+model = keras.models.load_model('/home/oscar47/Desktop/thinking_parrot/Literary-RNN/model_v0.0.1/models/shakespeare_v0.0.1.hdf5')
+output_char_num = 400
+generate_text(EX_PATH, MASTER_PATH, model, output_char_num)
