@@ -8,6 +8,6 @@ See the Twitter posts by Thinking Parrot here: https://twitter.com/parrot_thinki
 
 ## Instructions for use:
 1. First, fork this repo.
-2. Then clone  using ```git clone https://github.com/oscars47/Literary-RNN```.
+2. Then clone  using ```git clone <url>```.
 3. The folder model_v0.0.1 contains files for the skewed-normalized/uniform-continuous-ordered-sequential-character-bundle (U-COSCB) approach; model_v0.1.0 for the skewed-normalized/uniform-with-padding-continuous-ordered-sandwich-bundle model (SNWP-COSB). Note that while I was able to get the COSCB variants to work, I could not solve COSB. For explanations of these models, see my paper attached, section "Who Were Eating a Sandwhich: A New Experiment.
 4. Each folder has dataprep files, which contain the TextData objects that handle the text processing. We combine this with the masterdataprep file to synthesize training text files into one master file and process that data. We feed this data into the rnn (recurrent neural network) file, which allows us to train the model using Tensorflow. Then we can call the modelpredict file to actually predict based on a trained model for an input textfile. The results are adapted to be published on my Huggingface space as linked above in the files vx.x.x_website.
