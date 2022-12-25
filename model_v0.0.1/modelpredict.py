@@ -77,11 +77,11 @@ def generate_text(input, text_len, td):
         # sys.stdout.write(next_char)
         # sys.stdout.flush()
     #print()
-    '''
-    with open("experimental_log.txt", "a") as file:
-        write_stuff = ['RNN: cc = %i, diversity = %i' %(text_len, diversity), '\n', generated, '\n', '\n']
-        file.writelines(write_stuff)
-    '''
+    
+    # with open("experimental_log.txt", "a") as file:
+    #     write_stuff = ['RNN: cc = %i, diversity = %i' %(text_len, diversity), '\n', generated, '\n', '\n']
+    #     file.writelines(write_stuff)
+    
     return generated
 
 # function to call generate model >1 times

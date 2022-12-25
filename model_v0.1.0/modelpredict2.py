@@ -1,10 +1,11 @@
 # file to handle the prediction based on a trained model
 # @oscars47
 
-from dataprep2 import TextData
+from dataprep2_uniform import TextData
 
 import keras
 import numpy as np
+import sys
 
 # helper function that we call to generate text
 # takes in an input string, hdf5 trained model, and desired output length of text
@@ -27,15 +28,22 @@ def sample(preds, temperature=1.0):
     probas = np.random.multinomial(10, preds, 1)
     return np.argmax(probas)
 
-def generate_text(input, text_len, td):
-    initialize_pre(td)
-    print(alphabet)
-    # load in model
-    model = keras.models.load_model('nasrudin_v1.0.0.hdf5')
+def generate_text(ex_path, master_path, model, text_len):
+    maxChar=50
+    td = TextData(master_path, maxChar)   
+    alphabet = td.alphabet
+    int_to_char = td.int_to_char
+    char_to_int = td.char_to_int
+
+    # input is the cleaned text
+    td_sample = TextData(ex_path, maxChar)
+    input = td_sample.text[-2*maxChar+1:]
+    print(len(input))
+
     
     # make sure at least 3 characters for training
-    if len(input) < 3:
-        raise ValueError('Input must have >= %i characters. You have %i.' %(3, len(input)))
+    # if len(input) < 2*maxChar:
+    #     raise ValueError('Input must have >= %i characters. You have %i.' %(3, len(input)))
     
     # grab last maxChar characters
     #sentence = input[-maxChar:]
@@ -58,22 +66,22 @@ def generate_text(input, text_len, td):
     #print('diversity:', diversity)
     #sys.stdout.write(input)
 
-    # 1. compute difference from maxChar and len/2
-    diff = maxChar - int(len(sentence)/2)
-    # 2. initialize new string for each sentence
-    complete_sentence = ''
-    for i in range(diff):
-        complete_sentence+='£' # appending forbidden
-    # 3. now add 'real' sentence
-    complete_sentence+=sentence
-    # 4. append forbidden again
-    for i in range(diff):
-        complete_sentence+='£'
+    # # 1. compute difference from maxChar and len/2
+    # diff = maxChar - int(len(sentence)/2)
+    # # 2. initialize new string for each sentence
+    # complete_sentence = ''
+    # for i in range(diff):
+    #     complete_sentence+='£' # appending forbidden
+    # # 3. now add 'real' sentence
+    # complete_sentence+=sentence
+    # # 4. append forbidden again
+    # for i in range(diff):
+    #     complete_sentence+='£'
 
     # generate text_len characters worth of test
     for i in range(text_len):
         # prepare chosen sentence as part of new dataset
-        x_pred = np.zeros((1, maxChar, len(alphabet)))
+        x_pred = np.zeros((1, 2*maxChar, len(alphabet)))
         for t, char in enumerate(sentence):
             if char != '£': # encode 1 iff it's not padded
                 x_pred[0, t, char_to_int[char]] = 1.
@@ -88,14 +96,14 @@ def generate_text(input, text_len, td):
         generated+=next_char
 
         # check size of sentence; if still small can keep old stuff in sentence0
-        if len(sentence) >= 2*len(maxChar):
+        if len(sentence) >= 2*maxChar:
             sentence0 = sentence0[1:]
         sentence0 += next_char # append new middle character
         sentence=sentence0+sentence1 # append to main sentence
 
         # print the new character as we create it
-        # sys.stdout.write(next_char)
-        # sys.stdout.flush()
+        sys.stdout.write(next_char)
+        sys.stdout.flush()
     print()
 
     return generated
@@ -105,3 +113,9 @@ def experiment_RNN(input, model, text_len, num, maxChar, alphabet, char_to_int, 
     for i in range(0, num):
         generate_text(input, model, text_len, maxChar, alphabet, char_to_int, int_to_char)
         print()
+
+EX_PATH = '/home/oscar47/Desktop/thinking_parrot/input.txt'# path to input 
+MASTER_PATH = '/home/oscar47/Desktop/thinking_parrot/texts/master.txt'# path for the training text file
+model = keras.models.load_model('/home/oscar47/Desktop/thinking_parrot/tp2a-2 models/tp2_v0.0.1-2.hdf5')
+output_char_num = 400
+generate_text(EX_PATH, MASTER_PATH, model, output_char_num)
