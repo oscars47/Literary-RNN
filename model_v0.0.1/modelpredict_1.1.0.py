@@ -162,8 +162,8 @@ def generate_text_text(text, master_path, model, text_len):
     print()
     return generated
 
-EX_PATH = '/home/oscar47/Desktop/thinking_parrot/input.txt'# path to input 
-MASTER_PATH = '/home/oscar47/Desktop/thinking_parrot/texts/master.txt'# path for the training text file
-model = keras.models.load_model('/home/oscar47/Desktop/thinking_parrot/Literary-RNN/model_v0.0.1/models/shakespeare_v0.0.1.hdf5')
+EX_PATH = 'input.txt'# path to input 
+MASTER_PATH = 'master.txt'# path for the training text file
+model = keras.models.load_model('model_1.1.0.hdf5')
 output_char_num = 400
 generate_text(EX_PATH, MASTER_PATH, model, output_char_num)
