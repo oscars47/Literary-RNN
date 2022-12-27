@@ -61,7 +61,7 @@ for j in range(len(data_ls)):
         list1_labels.append(ratings_key[uni])
 
     axis[j, 0].pie(list1_count, labels=list1_labels, autopct=autopct_format(list1), colors=[colors[key] for key in list1_labels])
-    axis[j,0].set_title(text1+', '+f'{sum(list1)/(4*len(list1))*100:.3g}')
+    axis[j,0].set_title(text1+', '+f'{sum(list1)/(4*len(list1))*100:.3g}'+'%')
 
     # get unique
     list2_unique = set(list2)
@@ -73,7 +73,7 @@ for j in range(len(data_ls)):
 
 
     axis[j, 1].pie(list2_count, labels=list2_labels, autopct=autopct_format(list2), colors=[colors[key] for key in list2_labels])
-    axis[j,1].set_title(text2+', '+f'{sum(list2)/(4*len(list2))*100:.3g}')
+    axis[j,1].set_title(text2+', '+f'{sum(list2)/(4*len(list2))*100:.3g}'+'%')
 
     # get unique
     list3_unique = set(list3)
@@ -85,7 +85,7 @@ for j in range(len(data_ls)):
         list3_count.append(list3.count(uni))
 
     axis[j, 2].pie(list3_count, labels=list3_labels, autopct=autopct_format(list3), colors=[colors[key] for key in list3_labels])
-    axis[j,2].set_title(text3+', '+f'{sum(list3)/(4*len(list3))*100:.3g}')
+    axis[j,2].set_title(text3+', '+f'{sum(list3)/(4*len(list3))*100:.3g}'+'%')
 
     # get unique
     list4_unique = set(list4)
@@ -97,7 +97,7 @@ for j in range(len(data_ls)):
         list4_count.append(list4.count(uni))
 
     axis[j,3].pie(list4_count, labels=list4_labels, autopct=autopct_format(list4), colors=[colors[key] for key in list4_labels])
-    axis[j,3].set_title(text4+', '+f'{sum(list4)/(4*len(list4))*100:.3g}')
+    axis[j,3].set_title(text4+', '+f'{sum(list4)/(4*len(list4))*100:.3g}'+'%')
 
 figure.suptitle('Results: N='+str(len(data_ls[0][0])) + ", N'="+str(len(data_ls[0][2])), fontsize=18)
 plt.show()
