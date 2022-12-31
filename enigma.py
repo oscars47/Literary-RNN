@@ -101,7 +101,8 @@ def rereorderSequential(input, key):
     return output
 
 
-# define your input here!
+# define your input here! you can define an English input and encode it by reordering and/or encrypting using the functions above
+# or you can enter an encoded input and call from the functions above to decode the message. you can follow the example below!
 input = "hello world!"
 # key = [(i+np.random.randint(0, len(input)))%len(input) for i in range(len(input))]
 # key2 = [np.random.randint(0, len(input)) for i in range(len(input))]
@@ -109,11 +110,12 @@ key = [(i+i)%len(input) for i in range(len(input))] #key holds reordering key
 key2 = [i for i in range(len(input))] # key2 is for encrypting
 
 input2 = encrypt(input, key2)
-print(input2)
 
 input3 = reorderSequential(input2, key)
 print('encoded:', input3)
 
+# input3 represents the complete encrypted and reordered message. now we can undo this encoding.
+
 input4 = rereorderSequential(input3, key)
 input5 = decrypt(input4, key2)
-print('original input', input5)
+print('original:', input5)
