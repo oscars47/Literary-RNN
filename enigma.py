@@ -1,4 +1,13 @@
 # file to do encryption and reordering
+# @oscars47
+
+# How to run this file:
+# 1. enter your text you desire to encrypt in the file labeled "enigma_input.txt"
+# 2. use the existing methods to perform (a) character shifts and (b) position shifts
+# 3. follow the example structure to decode the messages by performing in reverse order all the methods you used to encrypt
+# 4. your encrypted message will read "encoded:" and your input will read "original" so you can confirm you did the decoding correct
+
+
 import numpy as np
 
 ALPHABET = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 
@@ -100,10 +109,30 @@ def rereorderSequential(input, key):
         output+=c
     return output
 
+# function to clean inputs
+def clean(input):
+    output = ''
+    for c in input:
+        if not(c in ALPHABET): # if forbidden character
+            if c == '“' or c== '”':
+                output+='"'
+            elif c=='’':
+                output+="'"
+            elif c == ' ': # don't forget spaces
+                output+=' '
+            elif c == '\n':
+                output+='\n'
+        else:
+            output+=c
+    return output
 
-# define your input here! you can define an English input and encode it by reordering and/or encrypting using the functions above
+# read in file which you can type your message
+# define your input in the textfile! you can define an English input and encode it by reordering and/or encrypting using the functions above
 # or you can enter an encoded input and call from the functions above to decode the message. you can follow the example below!
-input = "hello world"
+with open('enigma_input.txt') as f:
+    input = f.read()
+input = clean(input)
+
 # key = [(i+np.random.randint(0, len(input)))%len(input) for i in range(len(input))]
 # key2 = [np.random.randint(0, len(input)) for i in range(len(input))]
 key = [(i+i)%len(input) for i in range(len(input))] #key holds reordering key
