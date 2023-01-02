@@ -103,7 +103,7 @@ def rereorderSequential(input, key):
 
 # define your input here! you can define an English input and encode it by reordering and/or encrypting using the functions above
 # or you can enter an encoded input and call from the functions above to decode the message. you can follow the example below!
-input = "hello world!"
+input = "hello world"
 # key = [(i+np.random.randint(0, len(input)))%len(input) for i in range(len(input))]
 # key2 = [np.random.randint(0, len(input)) for i in range(len(input))]
 key = [(i+i)%len(input) for i in range(len(input))] #key holds reordering key
